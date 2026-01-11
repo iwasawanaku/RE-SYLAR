@@ -1,1 +1,52 @@
 node.mkd
+# ===== CMake build artifacts =====
+build/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+compile_commands.json
+CTestTestfile.cmake
+Testing/
+
+# ===== Output directories =====
+bin/
+lib/
+
+# ===== Object files =====
+*.o
+*.obj
+*.lo
+*.la
+*.a
+*.so
+*.so.*
+*.dylib
+
+# ===== Executables =====
+*.exe
+*.out
+*.app
+test
+test_*
+a.out
+
+# ===== Debug & profile =====
+*.gdb
+*.log
+*.prof
+*.gcda
+*.gcno
+*.gcov
+*.dSYM/
+
+# ===== Editor / IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ===== OS =====
+Thumbs.db

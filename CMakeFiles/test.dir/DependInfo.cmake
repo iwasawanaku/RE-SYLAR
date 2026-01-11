@@ -8,12 +8,12 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/liangyifan/Desktop/cpp/myServer/tests/test.cc" "CMakeFiles/test.dir/tests/test.cc.o" "gcc" "CMakeFiles/test.dir/tests/test.cc.o.d"
+  "/home/liangyifan/Desktop/cpp/RE-SYLAR/tests/test.cc" "CMakeFiles/test.dir/tests/test.cc.o" "gcc" "CMakeFiles/test.dir/tests/test.cc.o.d"
   )
 
 # Targets to which this target links.
 set(CMAKE_TARGET_LINKED_INFO_FILES
-  "/home/liangyifan/Desktop/cpp/myServer/CMakeFiles/myServer.dir/DependInfo.cmake"
+  "/home/liangyifan/Desktop/cpp/RE-SYLAR/CMakeFiles/sylar.dir/DependInfo.cmake"
   )
 
 # Fortran module output directory.

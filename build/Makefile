@@ -60,10 +60,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/liangyifan/Desktop/cpp/myServer
+CMAKE_SOURCE_DIR = /home/liangyifan/Desktop/cpp/RE-SYLAR
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/liangyifan/Desktop/cpp/myServer/build
+CMAKE_BINARY_DIR = /home/liangyifan/Desktop/cpp/RE-SYLAR/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -90,9 +90,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/liangyifan/Desktop/cpp/myServer/build/CMakeFiles /home/liangyifan/Desktop/cpp/myServer/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/liangyifan/Desktop/cpp/RE-SYLAR/build/CMakeFiles /home/liangyifan/Desktop/cpp/RE-SYLAR/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/liangyifan/Desktop/cpp/myServer/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/liangyifan/Desktop/cpp/RE-SYLAR/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -194,6 +194,30 @@ sylar/config.s: sylar/config.cc.s
 sylar/config.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/sylar.dir/build.make CMakeFiles/sylar.dir/sylar/config.cc.s
 .PHONY : sylar/config.cc.s
+
+sylar/fiber.o: sylar/fiber.cc.o
+.PHONY : sylar/fiber.o
+
+# target to build an object file
+sylar/fiber.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sylar.dir/build.make CMakeFiles/sylar.dir/sylar/fiber.cc.o
+.PHONY : sylar/fiber.cc.o
+
+sylar/fiber.i: sylar/fiber.cc.i
+.PHONY : sylar/fiber.i
+
+# target to preprocess a source file
+sylar/fiber.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sylar.dir/build.make CMakeFiles/sylar.dir/sylar/fiber.cc.i
+.PHONY : sylar/fiber.cc.i
+
+sylar/fiber.s: sylar/fiber.cc.s
+.PHONY : sylar/fiber.s
+
+# target to generate assembly for a file
+sylar/fiber.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sylar.dir/build.make CMakeFiles/sylar.dir/sylar/fiber.cc.s
+.PHONY : sylar/fiber.cc.s
 
 sylar/log.o: sylar/log.cc.o
 .PHONY : sylar/log.o
@@ -354,6 +378,9 @@ help:
 	@echo "... sylar/config.o"
 	@echo "... sylar/config.i"
 	@echo "... sylar/config.s"
+	@echo "... sylar/fiber.o"
+	@echo "... sylar/fiber.i"
+	@echo "... sylar/fiber.s"
 	@echo "... sylar/log.o"
 	@echo "... sylar/log.i"
 	@echo "... sylar/log.s"

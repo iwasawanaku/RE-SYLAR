@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/liangyifan/Desktop/cpp/myServer/. -I/apps/sylar/include
+CXX_INCLUDES = -I/home/liangyifan/Desktop/cpp/RE-SYLAR/. -I/apps/sylar/include
 
 CXX_FLAGS =  -rdynamic -O0 -ggdb -std=c++11 -Wall -Wno-deprecated -Werror -Wno-unused-function -Wno-builtin-macro-redefined
 
