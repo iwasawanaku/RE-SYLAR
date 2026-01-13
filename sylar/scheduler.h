@@ -56,7 +56,7 @@ protected:
     void run();
     virtual bool stopping();
     virtual void idle();
-
+    bool hasIdleThreads() { return m_idleThreadCount > 0;}
     void setThis();
 private:
     template<class FiberOrCb>
@@ -106,7 +106,7 @@ private:
     MutexType m_mutex;
     std::vector<Thread::ptr> m_threads;
     std::list<FiberAndThread> m_fibers;
-    Fiber::ptr m_rootFiber;
+    Fiber::ptr m_rootFiber;// 调度器主协程
     std::string m_name;
 protected:
     std::vector<int> m_threadIds;

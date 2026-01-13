@@ -248,7 +248,7 @@ namespace sylar
 
     void Fiber::CallerMainFunc()// 供use_caller=true的协程使用
     {
-        Fiber::ptr cur = GetThis();
+        Fiber::ptr cur = GetThis();// 防止执行的时候析构
         SYLAR_ASSERT(cur);
         try
         {
@@ -275,7 +275,7 @@ namespace sylar
 
         auto raw_ptr = cur.get();
         cur.reset();
-        raw_ptr->back(); // 这么写是为了防止cur析构后还在运行back导致的问题
+        raw_ptr->back(); // raw_ptr是普通的指针，不参与引用计数。如果不reset cur会导致引用计数无法归零，协程无法释放。这里没释放是因为scheduler还持有引用。
         SYLAR_ASSERT2(false, "never reach fiber_id=" + std::to_string(raw_ptr->getId()));
     }
 
