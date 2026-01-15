@@ -20,13 +20,16 @@ public:
     typedef std::shared_ptr<Address> ptr;
 
     static Address::ptr Create(const sockaddr* addr, socklen_t addrlen);
+    // 给一个 host（如 "www.baidu.com:80"），返回 解析出来的所有地址
     static bool Lookup(std::vector<Address::ptr>& result, const std::string& host,
             int family = AF_UNSPEC, int type = 0, int protocol = 0);
+    // 给一个 host（如 "www.baidu.com:80"），返回 任意一个 解析出来的地址
     static Address::ptr LookupAny(const std::string& host,
             int family = AF_UNSPEC, int type = 0, int protocol = 0);
     static std::shared_ptr<IPAddress> LookupAnyIPAddress(const std::string& host,
             int family = AF_UNSPEC, int type = 0, int protocol = 0);
 
+    // 获取本机所有网卡的地址信息
     static bool GetInterfaceAddresses(std::multimap<std::string
                     ,std::pair<Address::ptr, uint32_t> >& result,
                     int family = AF_UNSPEC);

@@ -42,9 +42,44 @@ void test_ipv4() {
     }
 }
 
+void test_broadcast(){
+    // 创建 IPv4 地址
+    sylar::IPv4Address::ptr ip = sylar::IPv4Address::Create("192.168.1.10", 8080);
+    if (!ip) {
+        std::cout << "create ip failed" << std::endl;
+        return;
+    }
+
+    uint32_t prefix = 24;
+
+    // 计算三个地址
+    sylar::IPAddress::ptr network   = ip->networdAddress(prefix);
+    sylar::IPAddress::ptr broadcast = ip->broadcastAddress(prefix);
+    sylar::IPAddress::ptr mask      = ip->subnetMask(prefix);
+
+    std::cout << "IP        : " << ip->toString() << std::endl;
+    std::cout << "Prefix    : /" << prefix << std::endl;
+
+    std::cout << "Network   : " << network->toString() << std::endl;
+    std::cout << "Broadcast : " << broadcast->toString() << std::endl;
+    std::cout << "Subnet    : " << mask->toString() << std::endl;
+
+    // 再测一个
+    sylar::IPv4Address::ptr ip2 = sylar::IPv4Address::Create("10.2.3.4");
+    prefix = 16;
+
+    std::cout << "\n---- Another test ----" << std::endl;
+    std::cout << "IP        : " << ip2->toString() << std::endl;
+    std::cout << "Prefix    : /" << prefix << std::endl;
+    std::cout << "Network   : " << ip2->networdAddress(prefix)->toString() << std::endl;
+    std::cout << "Broadcast : " << ip2->broadcastAddress(prefix)->toString() << std::endl;
+    std::cout << "Subnet    : " << ip2->subnetMask(prefix)->toString() << std::endl;
+}
+
 int main(int argc, char** argv) {
-    test_ipv4();
+    //test_ipv4();
     //test_iface();
     //test();
+    test_broadcast();
     return 0;
 }

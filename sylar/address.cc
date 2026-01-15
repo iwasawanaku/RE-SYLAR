@@ -11,7 +11,7 @@ namespace sylar {
 static sylar::Logger::ptr g_logger = SYLAR_LOG_ROOT();
 
 template<class T>
-static T CreateMask(uint32_t bits) {
+static T CreateMask(uint32_t bits) {// 前n bit为0，后面全1
     return (1 << (sizeof(T) * 8 - bits)) - 1;
 }
 
@@ -65,22 +65,32 @@ bool Address::Lookup(std::vector<Address::ptr>& result, const std::string& host,
 
     //检查 ipv6address serivce
     if(!host.empty() && host[0] == '[') {
-        const char* endipv6 = (const char*)memchr(host.c_str() + 1, ']', host.size() - 1);
-        if(endipv6) {
-            //TODO check out of range
-            if(*(endipv6 + 1) == ':') {
+    const char* begin = host.c_str();
+    const char* end   = begin + host.size();
+
+    const char* endipv6 = (const char*)memchr(begin + 1, ']', end - (begin + 1));
+    if(endipv6) {
+        // 取 IPv6 地址部分
+        node = host.substr(1, endipv6 - begin - 1);
+
+        // 检查是否有端口
+        // 需要至少满足: ]:
+        if(endipv6 + 1 < end && *(endipv6 + 1) == ':') {
+            // 需要保证 ':' 后面还有字符
+            if(endipv6 + 2 < end) {
                 service = endipv6 + 2;
             }
-            node = host.substr(1, endipv6 - host.c_str() - 1);
         }
     }
+    }
+
 
     //检查 node serivce
     if(node.empty()) {
         service = (const char*)memchr(host.c_str(), ':', host.size());
         if(service) {
-            if(!memchr(service + 1, ':', host.c_str() + host.size() - service - 1)) {
-                node = host.substr(0, service - host.c_str());
+            if(!memchr(service + 1, ':', host.c_str() + host.size() - service - 1)) {// 确保只有一个冒号.如果有多个冒号说明是ipv6地址
+                node = host.substr(0, service - host.c_str());// 跳过 ':'
                 ++service;
             }
         }
@@ -300,7 +310,7 @@ socklen_t IPv4Address::getAddrLen() const {
     return sizeof(m_addr);
 }
 
-std::ostream& IPv4Address::insert(std::ostream& os) const {
+std::ostream& IPv4Address::insert(std::ostream& os) const {// 输出点分十进制格式
     uint32_t addr = byteswapOnLittleEndian(m_addr.sin_addr.s_addr);
     os << ((addr >> 24) & 0xff) << "."
        << ((addr >> 16) & 0xff) << "."
@@ -310,7 +320,7 @@ std::ostream& IPv4Address::insert(std::ostream& os) const {
     return os;
 }
 
-IPAddress::ptr IPv4Address::broadcastAddress(uint32_t prefix_len) {
+IPAddress::ptr IPv4Address::broadcastAddress(uint32_t prefix_len) {//example: ipaddress "192.168.1.10", prefix_len 24 result: 192.168.1.255
     if(prefix_len > 32) {
         return nullptr;
     }
@@ -321,18 +331,18 @@ IPAddress::ptr IPv4Address::broadcastAddress(uint32_t prefix_len) {
     return IPv4Address::ptr(new IPv4Address(baddr));
 }
 
-IPAddress::ptr IPv4Address::networdAddress(uint32_t prefix_len) {
+IPAddress::ptr IPv4Address::networdAddress(uint32_t prefix_len) {//example: ipaddress "192.168.1.10", prefix_len 24 result: 192.168.1.0
     if(prefix_len > 32) {
         return nullptr;
     }
 
     sockaddr_in baddr(m_addr);
-    baddr.sin_addr.s_addr &= byteswapOnLittleEndian(
+    baddr.sin_addr.s_addr &= ~byteswapOnLittleEndian(
             CreateMask<uint32_t>(prefix_len));
     return IPv4Address::ptr(new IPv4Address(baddr));
 }
 
-IPAddress::ptr IPv4Address::subnetMask(uint32_t prefix_len) {
+IPAddress::ptr IPv4Address::subnetMask(uint32_t prefix_len) {//example: ipaddress "192.168.1.10", prefix_len 24 result: 255.255.255.0
     sockaddr_in subnet;
     memset(&subnet, 0, sizeof(subnet));
     subnet.sin_family = AF_INET;
@@ -424,7 +434,7 @@ IPAddress::ptr IPv6Address::broadcastAddress(uint32_t prefix_len) {
 IPAddress::ptr IPv6Address::networdAddress(uint32_t prefix_len) {
     sockaddr_in6 baddr(m_addr);
     baddr.sin6_addr.s6_addr[prefix_len / 8] &=
-        CreateMask<uint8_t>(prefix_len % 8);
+        ~CreateMask<uint8_t>(prefix_len % 8);
     for(int i = prefix_len / 8 + 1; i < 16; ++i) {
         baddr.sin6_addr.s6_addr[i] = 0x00;
     }
