@@ -24,7 +24,7 @@ public:
     bool getUserNonblock() const { return m_userNonblock;}
 
     void setSysNonblock(bool v) { m_sysNonblock = v;}
-    bool getSysNonblock() const { return m_sysNonblock;}
+    bool getSysNonblock() const { return m_sysNonblock;}// 可以系统阻塞，但是用户非阻塞
 
     void setTimeout(int type, uint64_t v);
     uint64_t getTimeout(int type);

@@ -1,46 +1,55 @@
-#include"sylar/sylar.h"
+#include "sylar/sylar.h"
+#include <unistd.h>
+
 sylar::Logger::ptr g_logger = SYLAR_LOG_ROOT();
 
-volatile int count=0;// 测试信号量用的全局变量
-
+int count = 0;
+//sylar::RWMutex s_mutex;
 sylar::Mutex s_mutex;
-void fun1(){
-    SYLAR_LOG_INFO(g_logger) << "thread name=" << sylar::Thread::GetName()
-        << " this.name:" << sylar::Thread::GetThis()->getName()
-        <<"id=" << sylar::GetThreadId()
-        <<"this.id"<< sylar::Thread::GetThis()->getId();
-    for(int i=0;i<10000000;++i){
+
+void fun1() {
+    SYLAR_LOG_INFO(g_logger) << "name: " << sylar::Thread::GetName()
+                             << " this.name: " << sylar::Thread::GetThis()->getName()
+                             << " id: " << sylar::GetThreadId()
+                             << " this.id: " << sylar::Thread::GetThis()->getId();
+
+    for(int i = 0; i < 100000; ++i) {
+        //sylar::RWMutex::WriteLock lock(s_mutex);
         sylar::Mutex::Lock lock(s_mutex);
         ++count;
-        //sleep(1);
     }
-    // 函数结束，lock析构函数自动解除s_mutex锁
-
 }
 
-void fun2(){
-    while(true)
-    SYLAR_LOG_INFO(g_logger) <<"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-}
-void fun3(){
-    while(true)
-    SYLAR_LOG_INFO(g_logger) <<"==========================================";
+void fun2() {
+    while(true) {
+        SYLAR_LOG_INFO(g_logger) << "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+    }
 }
 
-int main(int argc,char** argv){
+void fun3() {
+    while(true) {
+        SYLAR_LOG_INFO(g_logger) << "========================================";
+    }
+}
+
+int main(int argc, char** argv) {
+    SYLAR_LOG_INFO(g_logger) << "thread test begin";
+    YAML::Node root = YAML::LoadFile("/home/sylar/test/sylar/bin/conf/log2.yml");
+    sylar::Config::LoadFromYaml(root);
+
     std::vector<sylar::Thread::ptr> thrs;
-    for(int i=0;i<5;++i){
-        sylar::Thread::ptr thr(new sylar::Thread(&fun1,"name_"+std::to_string(i)));
+    for(int i = 0; i < 1; ++i) {
+        sylar::Thread::ptr thr(new sylar::Thread(&fun2, "name_" + std::to_string(i * 2)));
+        //sylar::Thread::ptr thr2(new sylar::Thread(&fun3, "name_" + std::to_string(i * 2 + 1)));
         thrs.push_back(thr);
+        //thrs.push_back(thr2);
     }
-    //sleep(20);
-    time_t start = time(0);
-    for(auto& i : thrs){
-        i->join();
-    }
-    time_t end = time(0);
-    SYLAR_LOG_INFO(g_logger) << "cost time=" << (end-start);
-    SYLAR_LOG_INFO(g_logger) << "count=" << count;
-    SYLAR_LOG_INFO(g_logger) << "thread test end";
 
+    for(size_t i = 0; i < thrs.size(); ++i) {
+        thrs[i]->join();
+    }
+    SYLAR_LOG_INFO(g_logger) << "thread test end";
+    SYLAR_LOG_INFO(g_logger) << "count=" << count;
+
+    return 0;
 }

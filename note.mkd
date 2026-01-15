@@ -57,7 +57,10 @@ static void OnTimer(std::weak_ptr<void> weak_cond, std::function<void()> cb) {
 ```
 # HOOK
 对于所有需要HOOK的IO函数，可以通过创建一个模板类，然后传入function和args，来实现对于所有IO函数的HOOK。
+c++ 可变参数
 
+系统非阻塞和用户非阻塞：系统非阻塞是对于整个系统来说，应该是非阻塞的。因为需要用epoll机制。reactor服务器在linux跑得更快。但是对于用户来说，语义是阻塞的。
+但是还是可以在协程之间进行切换。也就是说这个阻塞是相对于协程而言的。
 
 
 

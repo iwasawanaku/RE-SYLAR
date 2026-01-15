@@ -37,7 +37,7 @@ bool FdCtx::init() {
         m_isSocket = S_ISSOCK(fd_stat.st_mode);
     }
 
-    if(m_isSocket) {
+    if(m_isSocket) {// socket设置系统非阻塞。
         int flags = fcntl_f(m_fd, F_GETFL, 0);
         if(!(flags & O_NONBLOCK)) {
             fcntl_f(m_fd, F_SETFL, flags | O_NONBLOCK);

@@ -95,9 +95,11 @@ static ssize_t do_io(int fd, OriginFun fun, const char* hook_fun_name,
         return -1;
     }
 
-    if(!ctx->isSocket() || ctx->getUserNonblock()) {// 非阻塞直接返回系统调用
+    if(!ctx->isSocket() || ctx->getUserNonblock()) {// 用户非阻塞直接返回系统调用
         return fun(fd, std::forward<Args>(args)...);
     }
+
+    // 如果用户希望阻塞，则需要我们自己实现超时逻辑。但是在系统层面，仍然是非阻塞的
 
     uint64_t to = ctx->getTimeout(timeout_so);
     std::shared_ptr<timer_info> tinfo(new timer_info);
@@ -208,7 +210,7 @@ int socket(int domain, int type, int protocol) {
     return fd;
 }
 
-int connect_with_timeout(int fd, const struct sockaddr* addr, socklen_t addrlen, uint64_t timeout_ms) {
+int connect_with_timeout(int fd, const struct sockaddr* addr, socklen_t addrlen, uint64_t timeout_ms) {// 自己实现connect的超时功能
     if(!sylar::t_hook_enable) {
         return connect_f(fd, addr, addrlen);
     }
@@ -232,11 +234,12 @@ int connect_with_timeout(int fd, const struct sockaddr* addr, socklen_t addrlen,
     } else if(n != -1 || errno != EINPROGRESS) {
         return n;
     }
+    // 如果走到这里，说明是EINPROGRESS错误，需要等待可写事件或者超时
 
     sylar::IOManager* iom = sylar::IOManager::GetThis();
     sylar::Timer::ptr timer;
     std::shared_ptr<timer_info> tinfo(new timer_info);
-    std::weak_ptr<timer_info> winfo(tinfo);
+    std::weak_ptr<timer_info> winfo(tinfo);// 如果函数执行结束，winfo就会失效，从而导致condition timer不再触发
 
     if(timeout_ms != (uint64_t)-1) {
         timer = iom->addConditionTimer(timeout_ms, [winfo, fd, iom]() {
@@ -251,9 +254,11 @@ int connect_with_timeout(int fd, const struct sockaddr* addr, socklen_t addrlen,
 
     int rt = iom->addEvent(fd, sylar::IOManager::WRITE);
     if(rt == 0) {
-        sylar::Fiber::YieldToHold();
+        sylar::Fiber::YieldToHold();// 让出协程
+        
+        // 走到这说明写事件就绪或者超时
         if(timer) {
-            timer->cancel();
+            timer->cancel();// 如果定时器还在就要取消
         }
         if(tinfo->cancelled) {
             errno = tinfo->cancelled;
@@ -349,14 +354,14 @@ int close(int fd) {
 
 int fcntl(int fd, int cmd, ... /* arg */ ) {
     va_list va;
-    va_start(va, cmd);
+    va_start(va, cmd);// 获取可变参数
     switch(cmd) {
         case F_SETFL:
             {
-                int arg = va_arg(va, int);
+                int arg = va_arg(va, int);// 获取可变参数
                 va_end(va);
                 sylar::FdCtx::ptr ctx = sylar::FdMgr::GetInstance()->get(fd);
-                if(!ctx || ctx->isClose() || !ctx->isSocket()) {
+                if(!ctx || ctx->isClose() || !ctx->isSocket()) {// 如果不是socket也直接调用原始函数
                     return fcntl_f(fd, cmd, arg);
                 }
                 ctx->setUserNonblock(arg & O_NONBLOCK);
@@ -394,7 +399,7 @@ int fcntl(int fd, int cmd, ... /* arg */ ) {
             {
                 int arg = va_arg(va, int);
                 va_end(va);
-                return fcntl_f(fd, cmd, arg); 
+                return fcntl_f(fd, cmd, arg); // 调用原始函数
             }
             break;
         case F_GETFD:
@@ -404,7 +409,7 @@ int fcntl(int fd, int cmd, ... /* arg */ ) {
         case F_GETPIPE_SZ:
             {
                 va_end(va);
-                return fcntl_f(fd, cmd);
+                return fcntl_f(fd, cmd);// 调用原始函数
             }
             break;
         case F_SETLK:
@@ -413,7 +418,7 @@ int fcntl(int fd, int cmd, ... /* arg */ ) {
             {
                 struct flock* arg = va_arg(va, struct flock*);
                 va_end(va);
-                return fcntl_f(fd, cmd, arg);
+                return fcntl_f(fd, cmd, arg);// 调用原始函数
             }
             break;
         case F_GETOWN_EX:
@@ -421,7 +426,7 @@ int fcntl(int fd, int cmd, ... /* arg */ ) {
             {
                 struct f_owner_exlock* arg = va_arg(va, struct f_owner_exlock*);
                 va_end(va);
-                return fcntl_f(fd, cmd, arg);
+                return fcntl_f(fd, cmd, arg); // 调用原始函数
             }
             break;
         default:
@@ -456,7 +461,7 @@ int setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t
         return setsockopt_f(sockfd, level, optname, optval, optlen);
     }
     if(level == SOL_SOCKET) {
-        if(optname == SO_RCVTIMEO || optname == SO_SNDTIMEO) {
+        if(optname == SO_RCVTIMEO || optname == SO_SNDTIMEO) {// 设置超时
             sylar::FdCtx::ptr ctx = sylar::FdMgr::GetInstance()->get(sockfd);
             if(ctx) {
                 const timeval* v = (const timeval*)optval;
