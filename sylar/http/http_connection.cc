@@ -7,6 +7,7 @@ namespace http {
 
 static sylar::Logger::ptr g_logger = SYLAR_LOG_NAME("system");
 
+
 HttpConnection::HttpConnection(Socket::ptr sock, bool owner)
     :SocketStream(sock, owner) {
 }

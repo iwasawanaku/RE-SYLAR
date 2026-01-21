@@ -8,7 +8,7 @@ namespace sylar {
 static sylar::Logger::ptr g_logger = SYLAR_LOG_NAME("system");
 
 static thread_local Scheduler* t_scheduler = nullptr;
-static thread_local Fiber* t_fiber = nullptr;// 当前线程正在执行的协程
+static thread_local Fiber* t_scheduler_fiber = nullptr;// 当前调度器正在执行的协程
 
 Scheduler::Scheduler(size_t threads, bool use_caller, const std::string& name)
     :m_name(name) {
@@ -24,7 +24,7 @@ Scheduler::Scheduler(size_t threads, bool use_caller, const std::string& name)
         m_rootFiber.reset(new Fiber(std::bind(&Scheduler::run, this), 0, true));// 创建一个fiber,执行run调度函数。
         sylar::Thread::SetName(m_name);
 
-        t_fiber = m_rootFiber.get();// 设置当前线程正在执行的协程为调度协程
+        t_scheduler_fiber = m_rootFiber.get();// 设置当前线程正在执行的协程为调度协程
         m_rootThread = sylar::GetThreadId();
         m_threadIds.push_back(m_rootThread);
     } else {
@@ -45,7 +45,7 @@ Scheduler* Scheduler::GetThis() {
 }
 
 Fiber* Scheduler::GetMainFiber() {
-    return t_fiber;
+    return t_scheduler_fiber;
 }
 
 void Scheduler::start() {
@@ -127,7 +127,7 @@ void Scheduler::run() {
     set_hook_enable(true);
     setThis();// 设置当前调度器
     if(sylar::GetThreadId() != m_rootThread) {
-        t_fiber = Fiber::GetThis().get();
+        t_scheduler_fiber = Fiber::GetThis().get();
     }
 
     Fiber::ptr idle_fiber(new Fiber(std::bind(&Scheduler::idle, this)));

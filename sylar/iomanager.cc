@@ -161,7 +161,8 @@ namespace sylar
         else
         {
             event_ctx.fiber = Fiber::GetThis();
-            SYLAR_ASSERT(event_ctx.fiber->getState() == Fiber::EXEC);
+            SYLAR_ASSERT2(event_ctx.fiber->getState() == Fiber::EXEC
+                      ,"state=" << event_ctx.fiber->getState());
         }
         return 0;
     }

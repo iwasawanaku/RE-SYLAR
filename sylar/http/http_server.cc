@@ -14,13 +14,14 @@ HttpServer::HttpServer(bool keepalive,
 }
 
 void HttpServer::handleClient(Socket::ptr client){
+    SYLAR_LOG_DEBUG(g_logger) << "handleClient " << *client;
     HttpSession::ptr session(new HttpSession(client));
     do{
         auto req = session->recvRequest();
         if(!req){
             SYLAR_LOG_DEBUG(g_logger) << "recv http request fail, errno="
                 << errno << " errstr=" << strerror(errno)
-                << " client:" << *client;
+                << " client:" << *client<< " keep_alive=" << m_isKeepalive;
             break;
         }
         HttpResponse::ptr rsp(new HttpResponse(req->getVersion()
@@ -28,14 +29,12 @@ void HttpServer::handleClient(Socket::ptr client){
 
         m_dispatch->handle(req,rsp,session);
 
-        // rsp->setHeader("Server", getName());
-        // rsp->setBody("hello from httpserver!");
-
-        // SYLAR_LOG_INFO(g_logger) << "request: \n" << *req
-        //     << "response: \n" << *rsp;
 
         session->sendResponse(rsp);
-    }while(m_isKeepalive);
+        if(!m_isKeepalive || req->isClose()) {
+            break;
+        }
+    } while(true);
     session->close();
 }
 
