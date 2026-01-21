@@ -45,9 +45,6 @@ a.out
 *~
 .DS_Store
 
-# ===== OS =====
-Thumbs.db
-
 # ===== Others =====
-./sylar/address.h
-./sylar/address.cc
+thirdpart/
+note.mkd
