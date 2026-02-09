@@ -3,10 +3,15 @@ project(sylar)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdpart/yaml-cpp)
 
+find_package(OpenSSL REQUIRED)
+if(OPENSSL_FOUND)
+    include_directories(${OPENSSL_INCLUDE_DIR})
+endif()
+
 include (cmake/utils.cmake)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
-set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -rdynamic -O3 -ggdb -std=c++11 -Wall -Wno-deprecated -Werror -Wno-unused-function -Wno-builtin-macro-redefined")
+set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -rdynamic -O0 -ggdb -std=c++11 -Wall -Wno-deprecated -Werror -Wno-unused-function -Wno-builtin-macro-redefined")
 
 include_directories(.)
 include_directories(/apps/sylar/include)
@@ -22,8 +27,11 @@ set(LIB_SRC
     sylar/fiber.cc
     sylar/http/http.cc
     sylar/http/http_connection.cc
+    sylar/util/hash_util.cc
     sylar/http/http_parser.cc
     sylar/http/http_session.cc
+    sylar/daemon.cc
+    sylar/env.cc
     sylar/http/http_server.cc
     sylar/http/servlet.cc
     sylar/hook.cc
@@ -59,7 +67,8 @@ set(LIBS
         sylar
         dl
         pthread
-        yaml-cpp)
+        yaml-cpp
+        ${OPENSSL_LIBRARIES})
 
 sylar_add_executable(test1 "tests/test.cc" sylar "${LIBS}")
 sylar_add_executable(test_config "tests/test_config.cc" sylar "${LIBS}")
@@ -82,6 +91,9 @@ sylar_add_executable(test_uri "tests/test_uri.cc" sylar "${LIBS}")
 sylar_add_executable(my_http_server "examples/my_http_server.cc" sylar "${LIBS}")
 sylar_add_executable(echo_server_udp "examples/echo_server_udp.cc" sylar "${LIBS}")
 sylar_add_executable(echo_udp_client "examples/echo_udp_client.cc" sylar "${LIBS}")
+sylar_add_executable(test_daemon "tests/test_daemon.cc" sylar "${LIBS}")
+sylar_add_executable(test_env "tests/test_env.cc" sylar "${LIBS}")
+
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
