@@ -150,11 +150,12 @@ void Scheduler::run() {
                 }
 
                 ft = *it;
-                m_fibers.erase(it);
+                m_fibers.erase(it++);
                 ++m_activeThreadCount;
                 is_active = true;
                 break;
             }
+            tickle_me |= it != m_fibers.end();// 还有任务没被当前线程取走
         }
 
         if(tickle_me) {

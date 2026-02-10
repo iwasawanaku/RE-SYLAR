@@ -293,7 +293,7 @@ namespace sylar
 
     void IOManager::tickle()
     {
-        if (hasIdleThreads())
+        if (!hasIdleThreads())// 没有空闲线程
         {
             return;
         }
@@ -315,7 +315,8 @@ namespace sylar
 
     void IOManager::idle()
     {
-        epoll_event *events = new epoll_event[64]();
+        const uint64_t MAX_EVNETS = 256;
+        epoll_event* events = new epoll_event[MAX_EVNETS]();
         std::shared_ptr<epoll_event> shared_events(events, [](epoll_event *ptr)
                                                    { delete[] ptr; }); //
 
@@ -343,7 +344,7 @@ namespace sylar
                 {
                     next_timeout = MAX_TIMEOUT;
                 }
-                rt = epoll_wait(m_epfd, events, 64, (int)next_timeout); // 如果tickle了，会监听到，并且swapout
+                rt = epoll_wait(m_epfd, events, MAX_EVNETS, (int)next_timeout); // 如果tickle了，会监听到，并且swapout
                 if (rt < 0 && errno == EINTR)
                 {
                 }
@@ -367,9 +368,8 @@ namespace sylar
                 epoll_event &event = events[i];
                 if (event.data.fd == m_tickleFds[0])
                 {
-                    uint8_t dummy; // 读取掉管道的数据. 但是不处理。
-                    while (read(m_tickleFds[0], &dummy, 1) == 1)
-                        ; // 边缘触发要用while
+                    uint8_t dummy[256];
+                while(read(m_tickleFds[0], dummy, sizeof(dummy)) > 0);
                     continue;
                 }
 
@@ -407,12 +407,12 @@ namespace sylar
                     continue;
                 }
 
-                if (real_events & READ)
+                if (fd_ctx->events & READ)
                 {
                     fd_ctx->triggerEvent(READ);
                     --m_pendingEventCount;
                 }
-                if (real_events & WRITE)
+                if (fd_ctx->events & WRITE)
                 {
                     fd_ctx->triggerEvent(WRITE);
                     --m_pendingEventCount;
